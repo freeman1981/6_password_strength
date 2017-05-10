@@ -1,6 +1,18 @@
 import re
 
 
+SPECIAL_CHARACTERS = '@#$'
+BLACK_LIST_WORDS = (
+    'foo', 'bar', 'password', 'secret', '123', '12345678'
+)
+PERSONAL_INFO_LIST_WORDS = (
+    'alexander', 'kamenev'
+)
+ABBREVIATION_LIST_WORDS = (
+    'yandex', 'google', 'mail'
+)
+
+
 def _get_upper_lower_strength(password: str):
     if not password.islower() and not password.isupper():
         return 1
@@ -16,7 +28,7 @@ def _get_length_strength(password: str):
 
 
 def _get_digits_strength(password: str):
-    digit_regexp = re.compile(r'[0-9]')
+    digit_regexp = re.compile(r'[\d]')
     search_result = digit_regexp.search(password)
     if search_result is None:
         return 0
@@ -24,6 +36,46 @@ def _get_digits_strength(password: str):
         return 1
 
 
+def _get_char_strength(password: str):
+    digit_regexp = re.compile(r'[\D]')
+    search_result = digit_regexp.search(password)
+    if search_result is None:
+        return 0
+    else:
+        return 1
+
+
+def _get_special_characters_strength(password: str, special_characters=SPECIAL_CHARACTERS):
+    password_set = set(password)
+    special_characters_set = set(special_characters)
+    if password_set & special_characters_set:
+        return 0
+    else:
+        return 1
+
+
+def _get_stop_words_strength(password, stop_words_list):
+    for black_word in stop_words_list:
+        if black_word in password.lower():
+            return 0
+    else:
+        return 1
+
+
+def _get_black_list_strength(password: str, black_list_words=BLACK_LIST_WORDS):
+    return _get_stop_words_strength(password, black_list_words)
+
+
+def _get_personal_info_strength(password: str, personal_info_list_words=PERSONAL_INFO_LIST_WORDS):
+    return _get_stop_words_strength(password, personal_info_list_words)
+
+
+def _get_abbreviation_strength(password: str, abbreviation_list_words=ABBREVIATION_LIST_WORDS):
+    return _get_stop_words_strength(password, abbreviation_list_words)
+
+
+def _get_calendar_dates(password: str):
+    pass
 
 
 def get_password_strength(password):
@@ -31,6 +83,10 @@ def get_password_strength(password):
     password_strength += _get_upper_lower_strength(password)
     password_strength += _get_length_strength(password)
     password_strength += _get_digits_strength(password)
+    password_strength += _get_char_strength(password)
+    password_strength += _get_special_characters_strength(password)
+    password_strength += _get_black_list_strength(password)
+    password_strength += _get_abbreviation_strength(password)
     return password_strength
 
 
