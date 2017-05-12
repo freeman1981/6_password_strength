@@ -1,4 +1,5 @@
 import re
+import math
 
 
 SPECIAL_CHARACTERS = '@#$'
@@ -74,8 +75,9 @@ def _get_abbreviation_strength(password: str, abbreviation_list_words=ABBREVIATI
     return _get_stop_words_strength(password, abbreviation_list_words)
 
 
-def _get_calendar_dates(password: str):
-    pass
+def _normalize_number_to_ten(asked_number, max_availible_number):
+    m = 10 / max_availible_number
+    return math.floor(m * asked_number)
 
 
 def get_password_strength(password):
@@ -87,8 +89,9 @@ def get_password_strength(password):
     password_strength += _get_special_characters_strength(password)
     password_strength += _get_black_list_strength(password)
     password_strength += _get_abbreviation_strength(password)
-    return password_strength
+    return _normalize_number_to_ten(password_strength, 7)
 
 
 if __name__ == '__main__':
-    pass
+    password = input('Enter your password for checking: ')
+    print('Your password strength is {} of 10'.format(get_password_strength(password)))
