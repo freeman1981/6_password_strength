@@ -16,44 +16,29 @@ MAX_SCALE_NUMBER = 10
 
 
 def _get_upper_lower_strength(password: str):
-    if not password.islower() and not password.isupper():
-        return 1
-    else:
-        return 0
+    return 1 if not password.islower() and not password.isupper() else 0
 
 
 def _get_length_strength(password: str):
-    if len(password) >= 8:
-        return 1
-    else:
-        return 0
+    return 1 if len(password) >= 8 else 0
 
 
 def _get_digits_strength(password: str):
     digit_regexp = re.compile(r'[\d]')
     search_result = digit_regexp.search(password)
-    if search_result is None:
-        return 0
-    else:
-        return 1
+    return 0 if search_result is None else 1
 
 
 def _get_char_strength(password: str):
     digit_regexp = re.compile(r'[\D]')
     search_result = digit_regexp.search(password)
-    if search_result is None:
-        return 0
-    else:
-        return 1
+    return 0 if search_result is None else 1
 
 
 def _get_special_characters_strength(password: str, special_characters=SPECIAL_CHARACTERS):
     password_set = set(password)
     special_characters_set = set(special_characters)
-    if password_set & special_characters_set:
-        return 0
-    else:
-        return 1
+    return 0 if password_set & special_characters_set else 1
 
 
 def _get_stop_words_strength(password, stop_words_list):
