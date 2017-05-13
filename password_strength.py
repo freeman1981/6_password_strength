@@ -12,6 +12,7 @@ PERSONAL_INFO_LIST_WORDS = (
 ABBREVIATION_LIST_WORDS = (
     'yandex', 'google', 'mail'
 )
+MAX_SCALE_NUMBER = 10
 
 
 def _get_upper_lower_strength(password: str):
@@ -75,23 +76,31 @@ def _get_abbreviation_strength(password: str, abbreviation_list_words=ABBREVIATI
     return _get_stop_words_strength(password, abbreviation_list_words)
 
 
-def _normalize_number_to_ten(asked_number, max_availible_number):
-    m = 10 / max_availible_number
-    return math.floor(m * asked_number)
+def _normalize_number(asked_number, max_asked_number, max_scale_number=MAX_SCALE_NUMBER):
+    """Идея функции в том, чтобы число, полученное из одного диапазона, привезти к числу из другого"""
+    scale = max_scale_number / max_asked_number
+    return math.floor(scale * asked_number)
 
 
-def get_password_strength(password):
+password_criteria = (
+    _get_upper_lower_strength,
+    _get_length_strength,
+    _get_digits_strength,
+    _get_char_strength,
+    _get_special_characters_strength,
+    _get_black_list_strength,
+    _get_abbreviation_strength,
+)
+
+
+def get_password_strength(password, criteria):
     password_strength = 1
-    password_strength += _get_upper_lower_strength(password)
-    password_strength += _get_length_strength(password)
-    password_strength += _get_digits_strength(password)
-    password_strength += _get_char_strength(password)
-    password_strength += _get_special_characters_strength(password)
-    password_strength += _get_black_list_strength(password)
-    password_strength += _get_abbreviation_strength(password)
-    return _normalize_number_to_ten(password_strength, 7)
+    for item in criteria:
+        password_strength += item(password)
+    return _normalize_number(password_strength, len(criteria))
 
 
 if __name__ == '__main__':
     password = input('Enter your password for checking: ')
-    print('Your password strength is {} of 10'.format(get_password_strength(password)))
+    print('Your password strength is {} of {}'.format(
+        get_password_strength(password, password_criteria), MAX_SCALE_NUMBER))
