@@ -1,64 +1,37 @@
 import re
 import math
+from getpass import getpass
 
 
-SPECIAL_CHARACTERS = '@#$'
-BLACK_LIST_WORDS = (
-    'foo', 'bar', 'password', 'secret', '123', '12345678'
-)
-PERSONAL_INFO_LIST_WORDS = (
-    'alexander', 'kamenev'
-)
-ABBREVIATION_LIST_WORDS = (
-    'yandex', 'google', 'mail'
-)
+SPECIAL_CHARACTERS = '.,[,!,@,#,$,%,^,&,*,(,),_,~,-,]'
 MAX_SCALE_NUMBER = 10
+NORMAL_PASSWORD_LENGTH = 8
 
 
-def _get_upper_lower_strength(password: str):
-    return 1 if not password.islower() and not password.isupper() else 0
+def is_string_has_upper_and_lower_chars(password: str):
+    return not password.islower() and not password.isupper()
 
 
-def _get_length_strength(password: str):
-    return 1 if len(password) >= 8 else 0
+def is_string_has_normal_length(password: str, normal_password_length=NORMAL_PASSWORD_LENGTH):
+    return len(password) >= normal_password_length
 
 
-def _get_digits_strength(password: str):
+def is_string_has_digits(password: str):
     digit_regexp = re.compile(r'[\d]')
     search_result = digit_regexp.search(password)
-    return 0 if search_result is None else 1
+    return bool(search_result)
 
 
-def _get_char_strength(password: str):
+def is_string_has_chars(password: str):
     digit_regexp = re.compile(r'[\D]')
     search_result = digit_regexp.search(password)
-    return 0 if search_result is None else 1
+    return bool(search_result)
 
 
-def _get_special_characters_strength(password: str, special_characters=SPECIAL_CHARACTERS):
+def is_string_has_special_characters(password: str, special_characters=SPECIAL_CHARACTERS):
     password_set = set(password)
     special_characters_set = set(special_characters)
-    return 0 if password_set & special_characters_set else 1
-
-
-def _get_stop_words_strength(password, stop_words_list):
-    for black_word in stop_words_list:
-        if black_word in password.lower():
-            return 0
-    else:
-        return 1
-
-
-def _get_black_list_strength(password: str, black_list_words=BLACK_LIST_WORDS):
-    return _get_stop_words_strength(password, black_list_words)
-
-
-def _get_personal_info_strength(password: str, personal_info_list_words=PERSONAL_INFO_LIST_WORDS):
-    return _get_stop_words_strength(password, personal_info_list_words)
-
-
-def _get_abbreviation_strength(password: str, abbreviation_list_words=ABBREVIATION_LIST_WORDS):
-    return _get_stop_words_strength(password, abbreviation_list_words)
+    return bool(password_set & special_characters_set)
 
 
 def _normalize_number(asked_number, max_asked_number, max_scale_number=MAX_SCALE_NUMBER):
@@ -67,25 +40,24 @@ def _normalize_number(asked_number, max_asked_number, max_scale_number=MAX_SCALE
     return math.floor(scale * asked_number)
 
 
-password_criteria = (
-    _get_upper_lower_strength,
-    _get_length_strength,
-    _get_digits_strength,
-    _get_char_strength,
-    _get_special_characters_strength,
-    _get_black_list_strength,
-    _get_abbreviation_strength,
-)
+password_criteria = [
+    is_string_has_upper_and_lower_chars,
+    is_string_has_normal_length,
+    is_string_has_digits,
+    is_string_has_chars,
+    is_string_has_special_characters,
+]
 
 
 def get_password_strength(password, criteria):
     password_strength = 1
     for item in criteria:
-        password_strength += item(password)
+        if item(password):
+            password_strength += 1
     return _normalize_number(password_strength, len(criteria))
 
 
 if __name__ == '__main__':
-    password = input('Enter your password for checking: ')
+    password = getpass('Enter your password for checking: ')
     print('Your password strength is {} of {}'.format(
         get_password_strength(password, password_criteria), MAX_SCALE_NUMBER))
